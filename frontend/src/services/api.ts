@@ -122,6 +122,7 @@ export const backendApi = {
   updateUser: (id: string, data: any) => request<any>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   setUserActive: (id: string, active: boolean) => request<any>(`/users/${id}/active`, { method: 'PATCH', body: JSON.stringify({ active }) }),
   resetUserPassword: (id: string, password: string) => request<any>(`/users/${id}/reset-password`, { method: 'PATCH', body: JSON.stringify({ password }) }),
+  changeMyPassword: (data: any) => request<any>('/users/me/password', { method: 'PATCH', body: JSON.stringify(data) }),
   getAuditLogs: () => request<any[]>('/users/audit-logs'),
   createAuditLog: (data: any) => request<any>('/users/audit-logs', { method: 'POST', body: JSON.stringify(data) }),
 

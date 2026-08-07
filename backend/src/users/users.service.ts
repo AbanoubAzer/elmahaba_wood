@@ -8,6 +8,7 @@ export class UsersService {
 
   async findAll() {
     return this.prisma.user.findMany({
+      where: { isHidden: false },
       select: {
         id: true,
         name: true,
@@ -74,6 +75,23 @@ export class UsersService {
   async resetPassword(id: string, newPassword: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('المستخدم غير موجود');
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+      select: { id: true },
+    });
+  }
+
+  async changeMyPassword(id: string, oldPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('المستخدم غير موجود');
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new ConflictException('كلمة المرور الحالية غير صحيحة');
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     return this.prisma.user.update({

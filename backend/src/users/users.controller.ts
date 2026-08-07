@@ -49,6 +49,12 @@ export class UsersController {
     return this.usersService.setActive(id, active);
   }
 
+  @Patch('me/password')
+  changeMyPassword(@Request() req: any, @Body() body: any) {
+    const userId = req.user?.sub;
+    return this.usersService.changeMyPassword(userId, body.oldPassword, body.newPassword);
+  }
+
   @Patch(':id/reset-password')
   resetPassword(@Request() req: any, @Param('id') id: string, @Body('password') password: string) {
     this.checkAdmin(req);
