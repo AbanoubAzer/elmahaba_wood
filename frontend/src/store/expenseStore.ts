@@ -57,7 +57,7 @@ export const useExpenseStore = create<ExpenseState>((set) => ({
         currentUser?.role || 'admin',
         currentUser?.name || 'النظام',
         'تسجيل مصروف',
-        `تم تسجيل مصروف (${data.category}): ${data.description} بقيمة ${data.amount}`
+        `تم تسجيل مصروف (${data.category}): ${data.notes || data.title} بقيمة ${data.amount}`
       );
     } catch (err) {
       console.error('Failed to create expense:', err);

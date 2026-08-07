@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 
 export const Customers: React.FC = () => {
   const { currentUser } = useAuthStore();
-  const { customers, addCustomer, updateCustomer, deleteCustomer } = useCustomerSupplierStore();
+  const { customers, addCustomer, updateCustomer } = useCustomerSupplierStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

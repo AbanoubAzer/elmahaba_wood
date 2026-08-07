@@ -86,11 +86,6 @@ export const NewInvoice: React.FC = () => {
     if (paymentSplits.length === 1) return;
     const updated = paymentSplits.filter((_, i) => i !== index);
     setPaymentSplits(updated);
-
-    const newSum = updated.reduce((s, p) => s + (p.amount || 0), 0);
-    if (newSum >= totalAmount) setPaymentType('cash');
-    else if (newSum === 0) setPaymentType('credit');
-    else setPaymentType('partial');
   };
 
   const handlePaymentSplitChange = (index: number, field: keyof PaymentSplit, value: any) => {
@@ -100,11 +95,6 @@ export const NewInvoice: React.FC = () => {
       [field]: value,
     };
     setPaymentSplits(updated);
-
-    const newSum = updated.reduce((s, p) => s + (p.amount || 0), 0);
-    if (newSum >= totalAmount && totalAmount > 0) setPaymentType('cash');
-    else if (newSum === 0) setPaymentType('credit');
-    else setPaymentType('partial');
   };
 
   const handleProductChange = (index: number, productId: string) => {
