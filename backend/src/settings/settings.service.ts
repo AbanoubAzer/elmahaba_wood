@@ -33,4 +33,33 @@ export class SettingsService {
       throw error;
     }
   }
+
+  async testSmtp() {
+    const config = await this.getSetting('smtpConfig');
+    if (!config || !config.enabled || !config.senderEmail || !config.appPassword) {
+      throw new Error('إعدادات SMTP غير مكتملة أو معطلة');
+    }
+
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: config.senderEmail,
+        pass: config.appPassword,
+      },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: `"نظام المحبة للأخشاب" <${config.senderEmail}>`,
+        to: config.recipientEmail || config.senderEmail,
+        subject: 'بريد تجريبي من نظام المحبة للأخشاب',
+        text: 'تم إعداد خدمة البريد الإلكتروني بنجاح! يمكنك الآن استقبال الإشعارات والتنبيهات اليومية.',
+      });
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error('Failed to send test email', error);
+      throw new Error('فشل إرسال البريد: ' + error.message);
+    }
+  }
 }

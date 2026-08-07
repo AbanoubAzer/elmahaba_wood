@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Bell, Mail, CheckCircle2, Save, AlertTriangle } from 'lucide-react';
 import { useNotificationStore } from '../../store/notificationStore';
+import { backendApi } from '../../services/api';
 
 export const NotificationCenter: React.FC = () => {
   const { notifications, smtpConfig, updateSmtpConfig, markAsRead } = useNotificationStore();
 
   const [smtpState, setSmtpState] = useState(smtpConfig);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,17 +118,52 @@ export const NotificationCenter: React.FC = () => {
               />
             </div>
 
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">كلمة مرور التطبيق (App Password)</label>
+              <input
+                type="password"
+                required
+                value={smtpState.appPassword || ''}
+                onChange={(e) => setSmtpState({ ...smtpState, appPassword: e.target.value })}
+                placeholder="كلمة مرور التطبيق من حساب Google"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+              />
+              <p className="text-[10px] text-slate-500 mt-1">يجب تفعيل التحقق بخطوتين في جوجل أولاً للحصول عليها.</p>
+            </div>
+
             <p className="text-[11px] text-slate-400 leading-relaxed bg-amber-50/60 p-3 rounded-2xl border border-amber-100">
               💡 <strong>ملحوظة:</strong> يتم استخدام خادم Gmail SMTP المجاني 100% لإرسال تقرير يومي بملخص الأقساط المستحقة وتنبيهات التحصيل.
             </p>
 
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 py-3 bg-[#f28913] hover:bg-[#d97a0e] text-white rounded-2xl font-bold text-xs shadow-lg shadow-orange-500/20 transition-all"
-            >
-              <Save className="w-4 h-4" />
-              <span>حفظ الإعدادات</span>
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#f28913] hover:bg-[#d97a0e] text-white rounded-2xl font-bold text-xs shadow-lg shadow-orange-500/20 transition-all"
+              >
+                <Save className="w-4 h-4" />
+                <span>حفظ الإعدادات</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={async () => {
+                  setTestingEmail(true);
+                  try {
+                    await backendApi.testSmtpConfig();
+                    alert('تم إرسال البريد التجريبي بنجاح! راجع بريدك الوارد.');
+                  } catch (err: any) {
+                    alert('فشل الإرسال: ' + err.message);
+                  } finally {
+                    setTestingEmail(false);
+                  }
+                }}
+                disabled={testingEmail || !smtpState.appPassword || !smtpState.senderEmail}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-xs transition-all disabled:opacity-50"
+              >
+                <Mail className="w-4 h-4" />
+                <span>{testingEmail ? 'جاري الإرسال...' : 'إرسال بريد تجريبي'}</span>
+              </button>
+            </div>
           </form>
         </div>
       </div>

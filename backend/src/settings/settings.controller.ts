@@ -28,4 +28,14 @@ export class SettingsController {
     this.checkAdmin(req);
     return this.settingsService.setSetting('smtpConfig', config);
   }
+
+  @Post('smtp/test')
+  async testSmtpConfig(@Request() req: any) {
+    this.checkAdmin(req);
+    try {
+      return await this.settingsService.testSmtp();
+    } catch (error: any) {
+      throw new ForbiddenException(error.message);
+    }
+  }
 }

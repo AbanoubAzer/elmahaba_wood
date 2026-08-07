@@ -7,21 +7,23 @@ interface NotificationState {
   smtpConfig: {
     enabled: boolean;
     senderEmail: string;
+    appPassword?: string;
     recipientEmail: string;
   };
   isLoading: boolean;
   loadFromBackend: () => Promise<void>;
   addNotification: (title: string, message: string, type: 'warning' | 'info' | 'success') => void;
   markAsRead: (id: string) => void;
-  updateSmtpConfig: (config: { enabled: boolean; senderEmail: string; recipientEmail: string }) => void;
+  updateSmtpConfig: (config: { enabled: boolean; senderEmail: string; appPassword?: string; recipientEmail: string }) => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   smtpConfig: {
     enabled: true,
-    senderEmail: 'notifications@elmahaba-wood.com',
-    recipientEmail: 'owner@elmahaba-wood.com',
+    senderEmail: '',
+    appPassword: '',
+    recipientEmail: '',
   },
   isLoading: false,
 
@@ -36,8 +38,9 @@ export const useNotificationStore = create<NotificationState>((set) => ({
         notifications: notifs,
         smtpConfig: smtp || {
           enabled: true,
-          senderEmail: 'notifications@elmahaba-wood.com',
-          recipientEmail: 'owner@elmahaba-wood.com',
+          senderEmail: '',
+          appPassword: '',
+          recipientEmail: '',
         },
         isLoading: false,
       });

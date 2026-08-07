@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:3000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const REQUEST_TIMEOUT_MS = 8000;
 import toast from 'react-hot-toast';
 
@@ -138,6 +138,7 @@ export const backendApi = {
   // Settings & Notifications
   getSmtpConfig: () => request<any>('/settings/smtp'),
   updateSmtpConfig: (data: any) => request<any>('/settings/smtp', { method: 'POST', body: JSON.stringify(data) }),
+  testSmtpConfig: () => request<any>('/settings/smtp/test', { method: 'POST' }),
   getNotifications: () => request<any[]>('/notifications'),
   markNotificationAsRead: (id: string) => request<any>(`/notifications/${id}/read`, { method: 'PATCH' }),
 
