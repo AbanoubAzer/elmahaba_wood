@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Changa:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --font-sans: 'Cairo', 'Tajawal', sans-serif;
+  --font-digits: 'Changa', 'Cairo', sans-serif;
+  --color-brand-sidebar: #131b2f;
+  --color-brand-primary: #f28913;
+  --color-brand-primary-hover: #d97a0e;
+  --color-brand-success: #059669;
+  --color-brand-danger: #e11d48;
+  --color-brand-bg: #f8fafc;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-brand-bg);
+  color: #0f172a;
+  direction: rtl;
+  text-align: right;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dedicated tabular numbers font class */
+.font-mono, .font-digits, table td, table th {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* High definition font style for figures and values */
+.font-mono {
+  font-family: 'Changa', 'Cairo', sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print Optimization */
+@media print {
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print\:w-full {
+    width: 100% !important;
+  }
+
+  .print\:border-none {
+    border: none !important;
+  }
+
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  * {
+    overflow: visible !important;
+  }
+}

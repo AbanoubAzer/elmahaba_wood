@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  ACCOUNTANT
+  STOREKEEPER
+}
+
+enum PaymentType {
+  CASH
+  CREDIT
+  PARTIAL
+}
+
+enum PaymentMethod {
+  CASH
+  INSTAPAY
+  BANK_TRANSFER
+  VODAFONE_CASH
+  CHECK
+}
+
+enum InvoiceType {
+  SALE
+  PURCHASE
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+}
+
+enum InvoiceStatus {
+  PAID
+  PARTIAL
+  UNPAID
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  role      Role     @default(ADMIN)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  address   String
+  notes     String?
+  balance   Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  address   String
+  notes     String?
+  balance   Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WoodProduct {
+  id         String   @id @default(uuid())
+  code       String   @unique // e.g. MTSA-SH 100/19
+  name       String   // e.g. خشب سويد فنلندي ممتاز
+  specs      String   // e.g. 100 × 19 مم
+  volumeM3   Decimal  @default(0) @db.Decimal(12, 4) // 4 Decimal places accuracy!
+  pricePerM3 Decimal  @default(0) @db.Decimal(14, 2)
+  minStockM3 Decimal  @default(5) @db.Decimal(12, 4)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  inventoryMovements InventoryMovement[]
+  invoiceItems       InvoiceItem[]
+}
+
+model InventoryMovement {
+  id          String   @id @default(uuid())
+  date        DateTime @default(now())
+  invoiceNo   String
+  type        String   // 'in' or 'out'
+  productId   String
+  productCode String
+  productName String
+  volumeM3    Decimal  @db.Decimal(12, 4)
+  pricePerM3  Decimal  @db.Decimal(14, 2)
+  totalValue  Decimal  @db.Decimal(14, 2)
+  notes       String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+
+  product WoodProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model TreasuryAccount {
+  id            String        @id @default(uuid())
+  name          String
+  type          PaymentMethod @default(CASH)
+  balance       Decimal       @default(0) @db.Decimal(14, 2)
+  accountNumber String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model TreasuryTransaction {
+  id               String   @id @default(uuid())
+  date             DateTime @default(now())
+  fromTreasuryId   String?
+  fromTreasuryName String?
+  toTreasuryId     String?
+  toTreasuryName   String?
+  amount           Decimal  @db.Decimal(14, 2)
+  type             String   @default("transfer")
+  notes            String?
+  createdBy        String
+  createdAt        DateTime @default(now())
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  invoiceNo       String        @unique
+  date            DateTime      @default(now())
+  type            InvoiceType   @default(SALE)
+  partyType       PartyType     @default(CUSTOMER)
+  partyId         String
+  partyName       String
+  totalVolumeM3   Decimal       @db.Decimal(12, 4)
+  totalAmount     Decimal       @db.Decimal(14, 2)
+  paidAmount      Decimal       @db.Decimal(14, 2)
+  remainingAmount Decimal       @db.Decimal(14, 2)
+  paymentType     PaymentType   @default(CASH)
+  paymentMethod   PaymentMethod @default(CASH)
+  treasuryId      String
+  notes           String?       // Verbal agreements & delivery terms
+  status          InvoiceStatus @default(UNPAID)
+  createdBy       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items         InvoiceItem[]
+  ledgerEntries LedgerEntry[]
+
+  @@index([type])
+  @@index([partyId])
+  @@index([createdBy])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  productId   String
+  productCode String
+  productName String
+  volumeM3    Decimal  @db.Decimal(12, 4)
+  pricePerM3  Decimal  @db.Decimal(14, 2)
+  total       Decimal  @db.Decimal(14, 2)
+
+  invoice Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product WoodProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model LedgerEntry {
+  id          String    @id @default(uuid())
+  date        DateTime  @default(now())
+  partyType   PartyType @default(CUSTOMER)
+  partyId     String
+  partyName   String
+  description String
+  woodSpecs   String?
+  volumeM3    Decimal?  @db.Decimal(12, 4)
+  pricePerM3  Decimal?  @db.Decimal(14, 2)
+  debit       Decimal   @default(0) @db.Decimal(14, 2) // مدين (عليه)
+  credit      Decimal   @default(0) @db.Decimal(14, 2) // دائن (له)
+  balance     Decimal   @default(0) @db.Decimal(14, 2) // الرصيد التراكمي
+  invoiceId   String?
+  invoice     Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([partyId, partyType])
+}
+
+model BankCheck {
+  id          String   @id @default(uuid())
+  checkNumber String
+  bankName    String
+  dueDate     DateTime
+  amount      Decimal  @db.Decimal(14, 2)
+  type        String   @default("RECEIVABLE") // RECEIVABLE (قبض) or PAYABLE (دفع)
+  partyId     String?
+  partyName   String
+  status      String   @default("PENDING") // PENDING, CLEARED, BOUNCED
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CollectionRoute {
+  id           String   @id @default(uuid())
+  customerId   String
+  customerName String
+  address      String
+  phone        String
+  dueAmount    Decimal  @db.Decimal(14, 2)
+  order        Int      @default(1)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Reminder {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime
+  isCompleted Boolean  @default(false)
+  emailSent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Installment {
+  id        String    @id @default(uuid())
+  partyName String
+  partyType String    @default("supplier") // 'supplier' or 'person'
+  amount    Decimal   @db.Decimal(14, 2)
+  dueDate   DateTime
+  paid      Boolean   @default(false)
+  paidDate  DateTime?
+  notes     String?
+  emailSent Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  amount      Decimal  @db.Decimal(14, 2)
+  date        DateTime
+  treasuryId  String?
+  notes       String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  userRole  String
+  userName  String
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  date      DateTime @default(now())
+  read      Boolean  @default(false)
+  type      String   @default("info")
+  createdAt DateTime @default(now())
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

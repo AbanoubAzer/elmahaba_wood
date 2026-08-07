@@ -1,0 +1,16 @@
+# Vite & Node Dependencies
+node_modules/
+
+# Production output
+dist/
+
+# Local Environment Variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS & Editor Files
+.DS_Store
+.vscode/

@@ -1,0 +1,19 @@
+# NestJS & Node Dependencies
+node_modules/
+
+# Production output
+dist/
+
+# Environment Variables (Secrets & Passwords)
+.env
+
+# Logs
+*.log
+
+# OS & Editor Files
+.DS_Store
+.vscode/
+
+# SQLite Fallback Data
+data/
+*.sqlite
