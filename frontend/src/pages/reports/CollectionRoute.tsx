@@ -72,6 +72,14 @@ export const CollectionRoute: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <style>
+        {`
+          @media print {
+            @page { size: portrait; margin: 10mm; }
+            body { -webkit-print-color-adjust: exact; }
+          }
+        `}
+      </style>
       {/* Top Header Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
         <div>

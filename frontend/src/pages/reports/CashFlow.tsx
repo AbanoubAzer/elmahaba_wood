@@ -92,6 +92,14 @@ export const CashFlow: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <style>
+        {`
+          @media print {
+            @page { size: landscape; margin: 10mm; }
+            body { -webkit-print-color-adjust: exact; }
+          }
+        `}
+      </style>
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
         <div>
@@ -114,7 +122,7 @@ export const CashFlow: React.FC = () => {
 
       {/* Overview Cards (Overall Debts) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/60 flex items-center justify-between shadow-xs">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/60 flex items-center justify-between shadow-xs print:border-slate-300 print:shadow-none">
           <div>
             <p className="text-sm font-bold text-slate-500 mb-1">إجمالي الفلوس اللي بره (ديون العملاء)</p>
             <p className="text-2xl font-black text-emerald-600">{formatArabicNumber(totalCustomersDebt, 0)} ج.م</p>
@@ -123,7 +131,7 @@ export const CashFlow: React.FC = () => {
             <TrendingUp className="w-6 h-6" />
           </div>
         </div>
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/60 flex items-center justify-between shadow-xs">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/60 flex items-center justify-between shadow-xs print:border-slate-300 print:shadow-none">
           <div>
             <p className="text-sm font-bold text-slate-500 mb-1">إجمالي الفلوس اللي علينا (ديون الموردين)</p>
             <p className="text-2xl font-black text-rose-600">{formatArabicNumber(totalSuppliersDebt, 0)} ج.م</p>
