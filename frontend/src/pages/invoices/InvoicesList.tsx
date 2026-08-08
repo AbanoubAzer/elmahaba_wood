@@ -70,188 +70,191 @@ export const InvoicesList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-            <FileText className="w-6 h-6 text-[#f28913]" />
-            <span>سجل الفواتير (مبيعات وتوريد)</span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            عرض كافة الفواتير، تفاصيل المدفوع والمتبقي، طرق الدفع، ومعاينة الفاتورة والطباعة.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to="/invoices/new?type=sale"
-            className="flex items-center gap-2 bg-[#f28913] hover:bg-[#d97a0e] text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-orange-500/25 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>فاتورة مبيعات جديدة</span>
-          </Link>
-          <Link
-            to="/invoices/new?type=purchase"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-blue-600/25 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>فاتورة توريد خشب</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Search & Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="بحث برقم الفاتورة، العميل، المورد، أو الاتفاق المكتوب..."
-            className="w-full pl-4 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#f28913]/30"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setFilterType('all')}
-            className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all ${filterType === 'all' ? 'bg-[#f28913] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-          >
-            الكل ({formatArabicNumber(invoices.length, 0)})
-          </button>
-          <button
-            onClick={() => setFilterType('sale')}
-            className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all ${filterType === 'sale' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-          >
-            فواتير المبيعات
-          </button>
-          <button
-            onClick={() => setFilterType('purchase')}
-            className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all ${filterType === 'purchase' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-          >
-            فواتير الشراء والتوريد
-          </button>
-        </div>
-      </div>
-
-      {/* Invoices Table */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden print:border-none print:shadow-none print:w-full">
-        <style>
-          {`
-            @media print {
-              @page { size: landscape; margin: 10mm; }
-              body { -webkit-print-color-adjust: exact; }
-            }
-          `}
-        </style>
-        <div className="overflow-x-auto print:overflow-visible">
-          <table className="w-full text-right text-xs">
-            <thead>
-              <tr className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                <th className="py-3.5 px-4 font-bold">رقم الفاتورة</th>
-                <th className="py-3.5 px-4 font-bold">التاريخ</th>
-                <th className="py-3.5 px-4 font-bold">النوع</th>
-                <th className="py-3.5 px-4 font-bold">الطرف (عميل/مورد)</th>
-                <th className="py-3.5 px-4 font-bold">إجمالي الـ m³</th>
-                <th className="py-3.5 px-4 font-bold">إجمالي الفاتورة</th>
-                <th className="py-3.5 px-4 font-bold">المدفوع حالياً</th>
-                <th className="py-3.5 px-4 font-bold">الباقي (المتبقي آجل)</th>
-                <th className="py-3.5 px-4 font-bold">وسيلة وملاحظات السداد</th>
-                <th className="py-3.5 px-4 font-bold text-center">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
-              {paginatedInvoices.map((inv) => (
-                <tr key={inv.id} className={`hover:bg-slate-50/80 transition-all font-medium ${inv.status === 'cancelled' ? 'opacity-60 bg-red-50/30' : ''}`}>
-                  <td className="py-3.5 px-4 font-mono font-bold text-[#f28913]">
-                    <div className="flex items-center gap-2">
-                      {toArabicDigits(inv.invoiceNo)}
-                      {inv.status === 'cancelled' && <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded text-[9px]">ملغاة</span>}
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-4">{formatArabicDate(inv.date)}</td>
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${inv.type === 'sale'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-blue-100 text-blue-800'
-                        }`}
-                    >
-                      {inv.type === 'sale' ? 'مبيعات' : 'شراء وتوريد'}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">{inv.partyName}</td>
-                  <td className="py-3.5 px-4 font-bold text-slate-800">
-                    {formatArabicNumber(inv.totalVolumeM3, 4)} m³
-                  </td>
-                  <td className="py-3.5 px-4 font-extrabold text-slate-900">
-                    {formatArabicNumber(inv.totalAmount, 0)} ج.م
-                  </td>
-                  <td className="py-3.5 px-4 text-emerald-700 font-bold">
-                    {formatArabicNumber(inv.paidAmount, 0)} ج.م
-                  </td>
-                  <td className="py-3.5 px-4 text-rose-600 font-bold">
-                    {formatArabicNumber(inv.remainingAmount, 0)} ج.م
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="font-bold text-slate-700 block text-[11px]">
-                      {getPaymentMethodLabel(inv.paymentMethod)}
-                    </span>
-                    {inv.notes && (
-                      <span className="text-[10px] text-slate-400 block truncate max-w-xs">{inv.notes}</span>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <button
-                      onClick={() => setSelectedInvoice(inv)}
-                      className="p-1.5 text-slate-700 hover:text-[#f28913] hover:bg-orange-50 rounded-lg transition-all"
-                      title="معاينة تفاصيل الفاتورة والطباعة"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {paginatedInvoices.length === 0 && (
-                <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-slate-500 font-bold">
-                    لا توجد فواتير مطابقة للبحث أو الفلتر
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white px-4 py-3 border border-slate-200 rounded-xl">
-          <div className="text-xs text-slate-600">
-            عرض صفحة <span className="font-bold">{currentPage}</span> من <span className="font-bold">{totalPages}</span>
+      {/* Main Content (Hidden during print if a modal is open) */}
+      <div className={`space-y-6 ${selectedInvoice ? 'print:hidden' : ''}`}>
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+              <FileText className="w-6 h-6 text-[#f28913]" />
+              <span>سجل الفواتير (مبيعات وتوريد)</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              عرض كافة الفواتير، تفاصيل المدفوع والمتبقي، طرق الدفع، ومعاينة الفاتورة والطباعة.
+            </p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
+
+          <div className="flex items-center gap-3">
+            <Link
+              to="/invoices/new?type=sale"
+              className="flex items-center gap-2 bg-[#f28913] hover:bg-[#d97a0e] text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-orange-500/25 transition-all"
             >
-              السابق
+              <Plus className="w-4 h-4" />
+              <span>فاتورة مبيعات جديدة</span>
+            </Link>
+            <Link
+              to="/invoices/new?type=purchase"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-blue-600/25 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>فاتورة توريد خشب</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Search & Filters */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-md w-full">
+            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="بحث برقم الفاتورة، العميل، المورد، أو الاتفاق المكتوب..."
+              className="w-full pl-4 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#f28913]/30"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilterType('all')}
+              className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all ${filterType === 'all' ? 'bg-[#f28913] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+            >
+              الكل ({formatArabicNumber(invoices.length, 0)})
             </button>
             <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
+              onClick={() => setFilterType('sale')}
+              className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all ${filterType === 'sale' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
             >
-              التالي
+              فواتير المبيعات
+            </button>
+            <button
+              onClick={() => setFilterType('purchase')}
+              className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all ${filterType === 'purchase' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+            >
+              فواتير الشراء والتوريد
             </button>
           </div>
         </div>
-      )}
+
+        {/* Invoices Table */}
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden print:border-none print:shadow-none print:w-full">
+          <style>
+            {`
+              @media print {
+                @page { size: landscape; margin: 10mm; }
+                body { -webkit-print-color-adjust: exact; }
+              }
+            `}
+          </style>
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="w-full text-right text-xs">
+              <thead>
+                <tr className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                  <th className="py-3.5 px-4 font-bold">رقم الفاتورة</th>
+                  <th className="py-3.5 px-4 font-bold">التاريخ</th>
+                  <th className="py-3.5 px-4 font-bold">النوع</th>
+                  <th className="py-3.5 px-4 font-bold">الطرف (عميل/مورد)</th>
+                  <th className="py-3.5 px-4 font-bold">إجمالي الـ m³</th>
+                  <th className="py-3.5 px-4 font-bold">إجمالي الفاتورة</th>
+                  <th className="py-3.5 px-4 font-bold">المدفوع حالياً</th>
+                  <th className="py-3.5 px-4 font-bold">الباقي (المتبقي آجل)</th>
+                  <th className="py-3.5 px-4 font-bold">وسيلة وملاحظات السداد</th>
+                  <th className="py-3.5 px-4 font-bold text-center">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-800">
+                {paginatedInvoices.map((inv) => (
+                  <tr key={inv.id} className={`hover:bg-slate-50/80 transition-all font-medium ${inv.status === 'cancelled' ? 'opacity-60 bg-red-50/30' : ''}`}>
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#f28913]">
+                      <div className="flex items-center gap-2">
+                        {toArabicDigits(inv.invoiceNo)}
+                        {inv.status === 'cancelled' && <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded text-[9px]">ملغاة</span>}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4">{formatArabicDate(inv.date)}</td>
+                    <td className="py-3.5 px-4">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${inv.type === 'sale'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-blue-100 text-blue-800'
+                          }`}
+                      >
+                        {inv.type === 'sale' ? 'مبيعات' : 'شراء وتوريد'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-slate-900">{inv.partyName}</td>
+                    <td className="py-3.5 px-4 font-bold text-slate-800">
+                      {formatArabicNumber(inv.totalVolumeM3, 4)} m³
+                    </td>
+                    <td className="py-3.5 px-4 font-extrabold text-slate-900">
+                      {formatArabicNumber(inv.totalAmount, 0)} ج.م
+                    </td>
+                    <td className="py-3.5 px-4 text-emerald-700 font-bold">
+                      {formatArabicNumber(inv.paidAmount, 0)} ج.م
+                    </td>
+                    <td className="py-3.5 px-4 text-rose-600 font-bold">
+                      {formatArabicNumber(inv.remainingAmount, 0)} ج.م
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="font-bold text-slate-700 block text-[11px]">
+                        {getPaymentMethodLabel(inv.paymentMethod)}
+                      </span>
+                      {inv.notes && (
+                        <span className="text-[10px] text-slate-400 block truncate max-w-xs">{inv.notes}</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <button
+                        onClick={() => setSelectedInvoice(inv)}
+                        className="p-1.5 text-slate-700 hover:text-[#f28913] hover:bg-orange-50 rounded-lg transition-all"
+                        title="معاينة تفاصيل الفاتورة والطباعة"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {paginatedInvoices.length === 0 && (
+                  <tr>
+                    <td colSpan={10} className="px-4 py-12 text-center text-slate-500 font-bold">
+                      لا توجد فواتير مطابقة للبحث أو الفلتر
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-white px-4 py-3 border border-slate-200 rounded-xl">
+            <div className="text-xs text-slate-600">
+              عرض صفحة <span className="font-bold">{currentPage}</span> من <span className="font-bold">{totalPages}</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
+              >
+                السابق
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
+              >
+                التالي
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Detailed Invoice View Modal */}
       {selectedInvoice && (
@@ -268,7 +271,7 @@ export const InvoicesList: React.FC = () => {
                   <p className="text-xs text-slate-500">التاريخ: {formatArabicDate(selectedInvoice.date)}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 print:hidden">
                 {selectedInvoice.status !== 'cancelled' && (
                   <button
                     onClick={() => handleCancel(selectedInvoice.id)}
