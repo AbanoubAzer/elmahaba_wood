@@ -89,7 +89,7 @@ const menuGroups: MenuGroup[] = [
   },
 ];
 
-export const Sidebar: React.FC = () => {
+export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({ isOpen, onClose }) => {
   const { currentUser } = useAuthStore();
   const { checks } = useCheckStore();
   const role = currentUser?.role?.toLowerCase() || 'admin';
@@ -99,7 +99,7 @@ export const Sidebar: React.FC = () => {
   const pendingChecksCount = checks.filter(c => c.status === 'PENDING' && c.dueDate.split('T')[0] <= todayStr).length;
 
   return (
-    <aside className="w-64 bg-[#131b2f] text-slate-300 h-screen flex flex-col shadow-2xl z-30 sticky top-0 overflow-hidden print:hidden select-none border-l border-slate-800">
+    <aside className={`w-64 bg-[#131b2f] text-slate-300 h-screen flex flex-col shadow-2xl z-40 fixed top-0 right-0 md:sticky transition-transform duration-300 overflow-hidden print:hidden select-none border-l border-slate-800 ${isOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
       {/* Brand Logo Header */}
       <div className="p-5 flex flex-col items-center border-b border-slate-800/80 shrink-0">
         <div className="bg-[#f28913] p-3 rounded-2xl shadow-lg shadow-orange-500/20 mb-2">
@@ -155,6 +155,7 @@ export const Sidebar: React.FC = () => {
                                 <NavLink
                                   key={subIdx}
                                   to={sub.path}
+                                  onClick={() => onClose?.()}
                                   className={({ isActive }) =>
                                     `block px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                                       isActive
@@ -175,6 +176,7 @@ export const Sidebar: React.FC = () => {
                           <NavLink
                             to={item.path}
                             end={item.path === '/'}
+                            onClick={() => onClose?.()}
                             className={({ isActive }) =>
                               `flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                                 isActive
