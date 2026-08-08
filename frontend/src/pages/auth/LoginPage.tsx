@@ -8,7 +8,7 @@ import { useReminderStore } from '../../store/reminderStore';
 
 export const LoginPage: React.FC = () => {
   const { login, isLoading, error } = useAuthStore();
-  const [email, setEmail] = useState('admin@elmahaba.com');
+  const [email, setEmail] = useState('owner@elmahaba.com');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
 
