@@ -36,7 +36,7 @@ export const OfflineBanner: React.FC = () => {
       dir="rtl"
     >
       <span className="inline-block w-2 h-2 rounded-full bg-red-200 animate-pulse" />
-      الباك إند غير متاح — العمل في الوضع المحلي (البيانات لن تُحفظ)
+      ⚠️ جاري الاتصال بالسيرفر السحابي أو الشبكة ضعيفة... (يرجى الانتظار بضع ثوانٍ)
       <button
         onClick={checkConnectivity}
         className="mr-3 underline underline-offset-2 opacity-80 hover:opacity-100"

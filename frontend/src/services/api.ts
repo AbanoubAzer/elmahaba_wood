@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://elmahaba-wood.vercel.app/api';
 const REQUEST_TIMEOUT_MS = 8000;
 import toast from 'react-hot-toast';
 
@@ -30,7 +30,7 @@ export async function request<T>(endpoint: string, options?: RequestInit): Promi
       try {
         const json = JSON.parse(errorBody);
         parsedError = json.message || json.error || errorBody;
-      } catch (e) {}
+      } catch (e) { }
       throw new Error(parsedError);
     }
 
