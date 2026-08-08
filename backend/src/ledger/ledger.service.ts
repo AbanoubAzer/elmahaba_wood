@@ -9,6 +9,11 @@ export class LedgerService {
   async findAll() {
     return this.prisma.ledgerEntry.findMany({
       orderBy: { date: 'asc' },
+      include: {
+        invoice: {
+          include: { items: true }
+        }
+      }
     });
   }
 
@@ -17,6 +22,11 @@ export class LedgerService {
     return this.prisma.ledgerEntry.findMany({
       where: { partyId: customerId, partyType: 'CUSTOMER' },
       orderBy: { date: 'asc' },
+      include: {
+        invoice: {
+          include: { items: true }
+        }
+      }
     });
   }
 
@@ -25,6 +35,11 @@ export class LedgerService {
     return this.prisma.ledgerEntry.findMany({
       where: { partyId: supplierId, partyType: 'SUPPLIER' },
       orderBy: { date: 'asc' },
+      include: {
+        invoice: {
+          include: { items: true }
+        }
+      }
     });
   }
 }

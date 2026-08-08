@@ -11,10 +11,12 @@ export const OfflineBanner: React.FC = () => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
     try {
-      const res = await fetch(`${API_BASE_URL}/reports/summary`, {
+      // Use OPTIONS on a public endpoint so it doesn't fail due to 401 Unauthorized
+      await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'OPTIONS',
         signal: controller.signal,
       });
-      setStatus(res.ok ? 'online' : 'offline');
+      setStatus('online');
     } catch {
       setStatus('offline');
     } finally {
@@ -24,7 +26,7 @@ export const OfflineBanner: React.FC = () => {
 
   useEffect(() => {
     checkConnectivity();
-    intervalRef.current = setInterval(checkConnectivity, 30_000);
+    intervalRef.current = setInterval(checkConnectivity, 30_000) as any;
     return () => clearInterval(intervalRef.current);
   }, []);
 
@@ -32,7 +34,7 @@ export const OfflineBanner: React.FC = () => {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium shadow-lg animate-slide-down"
+      className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium shadow-lg animate-slide-down print:hidden"
       dir="rtl"
     >
       <span className="inline-block w-2 h-2 rounded-full bg-red-200 animate-pulse" />
