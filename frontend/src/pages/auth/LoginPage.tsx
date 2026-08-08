@@ -43,7 +43,7 @@ export const LoginPage: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-2xl mb-4">
             <span className="text-4xl">🪵</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">المهابة للأخشاب</h1>
+          <h1 className="text-3xl font-bold text-white">المحبة للأخشاب</h1>
           <p className="text-slate-400 mt-1">نظام إدارة المخزون والمحاسبة</p>
         </div>
 
