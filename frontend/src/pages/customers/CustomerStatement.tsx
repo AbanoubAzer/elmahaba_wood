@@ -6,7 +6,7 @@ import { useTreasuryStore } from '../../store/treasuryStore';
 import { useInvoiceStore } from '../../store/invoiceStore';
 import { useWoodStore } from '../../store/woodStore';
 import type { PaymentMethod } from '../../types';
-import { toArabicDigits, formatArabicNumber, formatArabicDate } from '../../utils/numberUtils';
+import { toArabicDigits, formatArabicNumber, formatArabicDate, getEgyptToday } from '../../utils/numberUtils';
 import { getPaymentMethodBadge } from '../../utils/paymentUtils';
 import { SmartDateFilters } from '../../components/ui/SmartDateFilters';
 import toast from 'react-hot-toast';
@@ -93,6 +93,36 @@ export const CustomerStatement: React.FC = () => {
   // Calculate mathematically exact running balances for customer statement
   let runningBalanceMath = 0;
 
+  const totalPeriodVolume = filteredEntries.reduce((sum, row) => {
+    const inv = row.invoice || (row.invoiceId ? invoices.find((i) => i.id === row.invoiceId) : null);
+    const isInvoiceMainRow = inv && row.debit > 0 && !row.description.includes('دفعة');
+    if (isInvoiceMainRow && inv) {
+      return sum + (Number(inv.totalVolumeM3) || (inv.items ? inv.items.reduce((s, it) => s + Number(it.volumeM3 || 0), 0) : 0));
+    }
+    if (!row.invoiceId && row.volumeM3) {
+      return sum + Number(row.volumeM3 || 0);
+    }
+    return sum;
+  }, 0);
+
+  const totalPeriodDebits = filteredEntries.reduce((sum, row) => {
+    const inv = row.invoice || (row.invoiceId ? invoices.find((i) => i.id === row.invoiceId) : null);
+    const isInvoiceMainRow = inv && row.debit > 0 && !row.description.includes('دفعة');
+    if (isInvoiceMainRow && inv) {
+      return sum + Number(inv.totalAmount || 0);
+    }
+    return sum + Number(row.debit || 0);
+  }, 0);
+
+  const totalPeriodCredits = filteredEntries.reduce((sum, row) => {
+    const inv = row.invoice || (row.invoiceId ? invoices.find((i) => i.id === row.invoiceId) : null);
+    const isInvoiceMainRow = inv && row.debit > 0 && !row.description.includes('دفعة');
+    if (isInvoiceMainRow && inv) {
+      return sum + Number(inv.paidAmount || 0);
+    }
+    return sum + Number(row.credit || 0);
+  }, 0);
+
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,14 +141,14 @@ export const CustomerStatement: React.FC = () => {
       };
 
       addLedgerEntry({
-        date: new Date().toISOString().split('T')[0],
+        date: getEgyptToday(),
         partyType: 'customer',
         partyId: customer.id,
         partyName: customer.name,
         description: `سند تحصيل مباشر (${getMethodLabel(paymentMethod)})`,
         debit: 0,
         credit: amount,
-        notes: notes || 'تحصيل من شاشة كشف الحساب',
+        notes: notes.trim(),
       });
 
       updateBalance(selectedTreasuryId, amount, 'deposit');
@@ -142,14 +172,14 @@ export const CustomerStatement: React.FC = () => {
       // Addition (إضافة رصيد/تسوية مدينة) increases their debt -> debit
 
       addLedgerEntry({
-        date: new Date().toISOString().split('T')[0],
+        date: getEgyptToday(),
         partyType: 'customer',
         partyId: customer.id,
         partyName: customer.name,
         description: manualEntryType === 'discount' ? 'خصم / تسوية دائنة (تخفيض حساب)' : 'إضافة / تسوية مدينة (زيادة حساب)',
         debit: manualEntryType === 'addition' ? manualEntryAmount : 0,
         credit: manualEntryType === 'discount' ? manualEntryAmount : 0,
-        notes: manualEntryNotes || 'تسوية يدوية من كشف الحساب',
+        notes: manualEntryNotes.trim(),
       });
 
       setShowManualEntryModal(false);
@@ -272,7 +302,7 @@ export const CustomerStatement: React.FC = () => {
 
       await createInvoice(
         {
-          date: new Date().toISOString().split('T')[0],
+          date: getEgyptToday(),
           type: 'sale',
           partyType: 'customer',
           partyId: customer.id,
@@ -428,8 +458,13 @@ export const CustomerStatement: React.FC = () => {
           />
         </div>
 
-        <div className="text-xs font-bold text-slate-600">
-          إجمالي الرصيد المستحق: <span className="text-[#f28913] text-sm font-black">{formatArabicNumber(customer.balance, 0)} ج.م</span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+            إجمالي التكعيب: <span className="text-teal-700 text-sm font-black">{formatArabicNumber(totalPeriodVolume, 4)} m³</span>
+          </div>
+          <div className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+            إجمالي الرصيد المستحق: <span className="text-[#f28913] text-sm font-black">{formatArabicNumber(customer.balance, 0)} ج.م</span>
+          </div>
         </div>
       </div>
 
@@ -448,6 +483,14 @@ export const CustomerStatement: React.FC = () => {
           <h2 className="text-xl font-bold text-slate-900">{customer.name}</h2>
           {customer.phone && <p className="text-slate-600 text-sm mt-1">تليفون: {toArabicDigits(customer.phone)}</p>}
           {customer.address && <p className="text-slate-500 text-xs">العنوان: {customer.address}</p>}
+          <div className="flex items-center justify-center gap-4 mt-3 text-xs font-bold flex-wrap">
+            <span className="bg-teal-50 text-teal-900 border border-teal-200 px-3 py-1 rounded-lg">
+              إجمالي الأمتار المكعبة بالفترة: <strong className="text-teal-700 text-sm font-black">{formatArabicNumber(totalPeriodVolume, 4)} m³</strong>
+            </span>
+            <span className="bg-amber-50 text-amber-900 border border-amber-200 px-3 py-1 rounded-lg">
+              الرصيد الحالي المستحق: <strong className="text-[#f28913] text-sm font-black">{formatArabicNumber(customer.balance, 0)} ج.م</strong>
+            </span>
+          </div>
         </div>
 
         {/* Clean Ultra Structured Statement Table */}
@@ -472,6 +515,7 @@ export const CustomerStatement: React.FC = () => {
                 if (isInvoiceMainRow && inv) {
                   // Calculate exact balance impact for customer: + invoiceTotal - paidAmount
                   runningBalanceMath += (inv.totalAmount - inv.paidAmount);
+                  const invoiceVolume = Number(inv.totalVolumeM3) || (inv.items ? inv.items.reduce((s, it) => s + Number(it.volumeM3 || 0), 0) : 0);
 
                   return (
                     <React.Fragment key={`inv-clean-${row.id}`}>
@@ -481,11 +525,26 @@ export const CustomerStatement: React.FC = () => {
                           {formatArabicDate(row.date)}
                         </td>
                         <td className="border border-slate-400 px-3 py-2 text-right font-black" colSpan={3}>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-indigo-900 font-black">{row.description}</span>
-                            <span className="text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg text-xs font-black">
-                              إجمالي الفاتورة: {formatArabicNumber(inv.totalAmount, 0)} ج.م
-                            </span>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-indigo-900 font-black">{row.description}</span>
+                              {(inv.notes || row.notes) && (
+                                <div className="text-[11px] text-slate-700 bg-white/90 border border-slate-300 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 w-fit font-normal">
+                                  <span className="font-bold text-amber-900">ملاحظات:</span>
+                                  <span>{inv.notes || row.notes}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {invoiceVolume > 0 && (
+                                <span className="text-teal-900 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-lg text-xs font-black">
+                                  إجمالي التكعيب: {formatArabicNumber(invoiceVolume, 4)} m³
+                                </span>
+                              )}
+                              <span className="text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg text-xs font-black">
+                                إجمالي الفاتورة: {formatArabicNumber(inv.totalAmount, 0)} ج.م
+                              </span>
+                            </div>
                           </div>
                         </td>
                         <td className="border border-slate-400 px-3 py-2 text-center text-xs font-extrabold text-rose-700">
@@ -536,8 +595,16 @@ export const CustomerStatement: React.FC = () => {
                     <tr key={row.id} className="page-break-inside-avoid bg-slate-50/50 hover:bg-slate-100/60">
                       <td className="border border-slate-400 px-3 py-2 text-center whitespace-nowrap">{formatArabicDate(row.date)}</td>
                       <td className="border border-slate-400 px-3 py-2 text-right font-medium">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-bold text-slate-800">{row.description}</span>
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-bold text-slate-800">{row.description}</span>
+                            {row.notes && (
+                              <div className="text-[11px] text-amber-950 bg-amber-50 border border-amber-200/90 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 w-fit font-normal">
+                                <span className="font-bold text-amber-900">ملاحظات:</span>
+                                <span>{row.notes}</span>
+                              </div>
+                            )}
+                          </div>
                           {getPaymentMethodBadge(null, row)}
                         </div>
                       </td>
@@ -551,6 +618,26 @@ export const CustomerStatement: React.FC = () => {
                 }
               })}
             </tbody>
+            <tfoot className="bg-slate-100 font-black border-t-2 border-slate-500 page-break-inside-avoid">
+              <tr>
+                <td colSpan={2} className="border border-slate-400 px-3 py-2 text-center text-slate-800">
+                  الإجمالي العام للحركات المعروضة
+                </td>
+                <td className="border border-slate-400 px-3 py-2 text-center text-teal-800 font-black">
+                  {totalPeriodVolume > 0 ? `${formatArabicNumber(totalPeriodVolume, 4)} m³` : '-'}
+                </td>
+                <td className="border border-slate-400 px-3 py-2 text-center">-</td>
+                <td className="border border-slate-400 px-3 py-2 text-center text-rose-800 font-black">
+                  {formatArabicNumber(totalPeriodDebits, 0)} ج.م
+                </td>
+                <td className="border border-slate-400 px-3 py-2 text-center text-emerald-800 font-black">
+                  {formatArabicNumber(totalPeriodCredits, 0)} ج.م
+                </td>
+                <td className="border border-slate-400 px-3 py-2 text-center bg-slate-200 text-slate-900 font-black">
+                  {formatArabicNumber(runningBalanceMath, 0)} ج.م
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 

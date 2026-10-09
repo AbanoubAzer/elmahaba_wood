@@ -22,6 +22,7 @@ import { useInstallmentStore } from '../store/installmentStore';
 import { useInvoiceStore } from '../store/invoiceStore';
 import { useAuthStore } from '../store/authStore';
 import { Link } from 'react-router-dom';
+import { getEgyptToday } from '../utils/numberUtils';
 import {
   BarChart,
   Bar,
@@ -48,7 +49,7 @@ export const Dashboard: React.FC = () => {
   const [showReminderModal, setShowReminderModal] = React.useState(false);
   const [newReminderTitle, setNewReminderTitle] = React.useState('');
   const [newReminderDesc, setNewReminderDesc] = React.useState('');
-  const [newReminderDate, setNewReminderDate] = React.useState(new Date().toISOString().split('T')[0]);
+  const [newReminderDate, setNewReminderDate] = React.useState(getEgyptToday());
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const totalStockM3 = products.reduce((acc, p) => acc + p.volumeM3, 0);
@@ -56,7 +57,7 @@ export const Dashboard: React.FC = () => {
   const totalCustomerDebts = customers.reduce((acc, c) => acc + (c.balance > 0 ? c.balance : 0), 0);
   const totalSupplierDebts = suppliers.reduce((acc, s) => acc + (s.balance > 0 ? s.balance : 0), 0);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getEgyptToday();
   const overdueInstallments = installments.filter((inst) => !inst.paid && inst.dueDate < todayStr);
   const lowStockProducts = products.filter((p) => p.volumeM3 <= p.minStockM3);
 

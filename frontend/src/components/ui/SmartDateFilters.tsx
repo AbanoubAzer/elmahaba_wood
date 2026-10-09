@@ -1,4 +1,5 @@
 import React from 'react';
+import { getEgyptToday } from '../../utils/numberUtils';
 
 interface SmartDateFiltersProps {
   onSelect: (startDate: string, endDate: string) => void;
@@ -8,9 +9,9 @@ export const SmartDateFilters: React.FC<SmartDateFiltersProps> = ({ onSelect }) 
   const handleSelect = (type: 'today' | 'week' | 'month' | 'lastMonth') => {
     const today = new Date();
     
-    // Format helper YYYY-MM-DD
+    // Format helper YYYY-MM-DD in Egypt timezone
     const format = (d: Date) => {
-      return d.toISOString().split('T')[0];
+      return getEgyptToday(d);
     };
 
     let start = new Date();

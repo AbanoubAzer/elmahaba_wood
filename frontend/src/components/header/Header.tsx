@@ -36,6 +36,7 @@ export const Header: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) 
 
   const unreadCount = notifications.filter((n) => !n.read).length;
   const currentDate = new Date().toLocaleDateString('ar-EG', {
+    timeZone: 'Africa/Cairo',
     weekday: 'long',
     year: 'numeric',
     month: 'long',

@@ -9,7 +9,7 @@ import { useAuthStore } from '../../store/authStore';
 import Select from 'react-select';
 import { toast } from 'react-hot-toast';
 import type { InvoiceItem, PaymentMethod } from '../../types';
-import { formatArabicNumber, toArabicDigits } from '../../utils/numberUtils';
+import { formatArabicNumber, toArabicDigits, getEgyptToday } from '../../utils/numberUtils';
 
 interface PaymentSplit {
   method: PaymentMethod;
@@ -264,7 +264,7 @@ export const NewInvoice: React.FC = () => {
 
       await createInvoice(
         {
-          date: new Date().toISOString().split('T')[0],
+          date: getEgyptToday(),
           type: invoiceType,
           partyType: invoiceType === 'sale' ? 'customer' : 'supplier',
           partyId: selectedParty.id,

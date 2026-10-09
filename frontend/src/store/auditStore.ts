@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { AuditLog, UserRole } from '../types';
 import { backendApi } from '../services/api';
+import { formatArabicDateTime } from '../utils/numberUtils';
 
 interface AuditState {
   logs: AuditLog[];
@@ -19,7 +20,7 @@ export const useAuditStore = create<AuditState>((set) => ({
       const data = await backendApi.getAuditLogs();
       const formattedLogs = data.map((log: any) => ({
         id: log.id,
-        timestamp: new Date(log.timestamp).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }),
+        timestamp: formatArabicDateTime(log.timestamp),
         userRole: log.userRole,
         userName: log.userName,
         action: log.action,
@@ -36,7 +37,7 @@ export const useAuditStore = create<AuditState>((set) => ({
   logAction: (userRole, userName, action, details) => {
     const newLog: AuditLog = {
       id: 'temp_' + Date.now(),
-      timestamp: new Date().toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }),
+      timestamp: formatArabicDateTime(new Date()),
       userRole,
       userName,
       action,
