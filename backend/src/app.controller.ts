@@ -1,12 +1,18 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Root')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @ApiOperation({ summary: 'Health check and API info' })
+  getRoot() {
+    return {
+      status: 'online',
+      message: '🚀 سيرفر نظام شركة المحبة لتجارة الأخشاب يعمل بنجاح',
+      apiDocs: '/api/docs',
+      apiPrefix: '/api',
+      timestamp: new Date().toISOString(),
+    };
   }
 }
