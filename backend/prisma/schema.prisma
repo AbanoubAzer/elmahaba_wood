@@ -154,6 +154,7 @@ model Invoice {
   paymentMethod   PaymentMethod @default(CASH)
   treasuryId      String
   notes           String?       // Verbal agreements & delivery terms
+  images          String[]      @default([]) // Cloudinary invoice receipt/bill images
   status          InvoiceStatus @default(UNPAID)
   createdBy       String
   createdAt       DateTime      @default(now())
@@ -198,6 +199,7 @@ model LedgerEntry {
   invoiceId   String?
   invoice     Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   notes       String?
+  images      String[]  @default([])
   createdAt   DateTime  @default(now())
 
   @@index([partyId, partyType])

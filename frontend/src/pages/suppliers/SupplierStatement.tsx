@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FileText, Printer, PlusCircle, ChevronRight, Calendar, ShoppingBag, CheckCircle2, Trash2, Plus, Wallet, Loader2 } from 'lucide-react';
+import { FileText, Printer, PlusCircle, ChevronRight, Calendar, ShoppingBag, CheckCircle2, Trash2, Plus, Wallet, Loader2, Camera } from 'lucide-react';
 import { useCustomerSupplierStore } from '../../store/customerSupplierStore';
 import { useTreasuryStore } from '../../store/treasuryStore';
 import { useInvoiceStore } from '../../store/invoiceStore';
@@ -9,6 +9,8 @@ import type { PaymentMethod } from '../../types';
 import { toArabicDigits, formatArabicNumber, formatArabicDate, getEgyptToday } from '../../utils/numberUtils';
 import { getPaymentMethodBadge } from '../../utils/paymentUtils';
 import { SmartDateFilters } from '../../components/ui/SmartDateFilters';
+import { ImageViewerModal } from '../../components/ui/ImageViewerModal';
+import { ImageUploadDropzone } from '../../components/ui/ImageUploadDropzone';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 
@@ -66,7 +68,12 @@ export const SupplierStatement: React.FC = () => {
   ]);
 
   const [invoiceNotes, setInvoiceNotes] = useState('');
+  const [invoiceImages, setInvoiceImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerTitle, setViewerTitle] = useState('');
 
   if (!supplier) {
     return (
@@ -304,6 +311,7 @@ export const SupplierStatement: React.FC = () => {
           paymentMethod: paymentSplits[0]?.method || 'cash',
           treasuryId: paymentSplits[0]?.treasuryId || selectedTreasuryId,
           notes: combinedNotes || 'فاتورة توريد جديدة من كشف الحساب',
+          images: invoiceImages,
           createdBy: 'المحاسب العام',
         },
         'المحاسب العام',
@@ -332,6 +340,7 @@ export const SupplierStatement: React.FC = () => {
         },
       ]);
       setInvoiceNotes('');
+      setInvoiceImages([]);
       toast.success('تم تسجيل الفاتورة بنجاح');
     } catch (err: any) {
       toast.error(err.message || 'حدث خطأ أثناء حفظ الفاتورة');
@@ -498,6 +507,7 @@ export const SupplierStatement: React.FC = () => {
                 if (isInvoiceMainRow && inv) {
                   runningBalanceMath += (inv.totalAmount - inv.paidAmount);
                   const invoiceVolume = Number(inv.totalVolumeM3) || (inv.items ? inv.items.reduce((s, it) => s + Number(it.volumeM3 || 0), 0) : 0);
+                  const invoiceImages = (inv.images && inv.images.length > 0) ? inv.images : (row.images && row.images.length > 0 ? row.images : []);
 
                   return (
                     <React.Fragment key={`inv-clean-${row.id}`}>
@@ -517,6 +527,25 @@ export const SupplierStatement: React.FC = () => {
                               )}
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
+                              {invoiceImages.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setViewerImages(invoiceImages);
+                                    setViewerTitle(`مرفقات فاتورة توريد رقم ${toArabicDigits(inv.invoiceNo)}`);
+                                    setViewerOpen(true);
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300 rounded-lg text-xs font-black transition-colors cursor-pointer"
+                                >
+                                  <Camera className="w-3.5 h-3.5 text-amber-700" />
+                                  <span>المرفقات ({toArabicDigits(invoiceImages.length)})</span>
+                                  <img
+                                    src={invoiceImages[0]}
+                                    alt="صورة الفاتورة"
+                                    className="w-4 h-4 rounded object-cover border border-amber-400"
+                                  />
+                                </button>
+                              )}
                               {invoiceVolume > 0 && (
                                 <span className="text-teal-900 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-lg text-xs font-black">
                                   إجمالي التكعيب: {formatArabicNumber(invoiceVolume, 4)} m³
@@ -568,6 +597,7 @@ export const SupplierStatement: React.FC = () => {
                   );
                 } else {
                   runningBalanceMath += (row.credit - row.debit);
+                  const rowImages = row.images && row.images.length > 0 ? row.images : [];
 
                   return (
                     <tr key={row.id} className="page-break-inside-avoid bg-slate-50/50 hover:bg-slate-100/60">
@@ -583,7 +613,28 @@ export const SupplierStatement: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          {getPaymentMethodBadge(null, row)}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {rowImages.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setViewerImages(rowImages);
+                                  setViewerTitle(`مرفقات سند ${row.description}`);
+                                  setViewerOpen(true);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300 rounded-lg text-xs font-black transition-colors cursor-pointer"
+                              >
+                                <Camera className="w-3.5 h-3.5 text-amber-700" />
+                                <span>المرفقات ({toArabicDigits(rowImages.length)})</span>
+                                <img
+                                  src={rowImages[0]}
+                                  alt="صورة السند"
+                                  className="w-4 h-4 rounded object-cover border border-amber-400"
+                                />
+                              </button>
+                            )}
+                            {getPaymentMethodBadge(null, row)}
+                          </div>
                         </div>
                       </td>
                       <td className="border border-slate-400 px-3 py-2 text-center">{row.volumeM3 ? `${formatArabicNumber(row.volumeM3, 4)} m³` : '-'}</td>
@@ -841,6 +892,14 @@ export const SupplierStatement: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <ImageUploadDropzone
+                  images={invoiceImages}
+                  onChange={setInvoiceImages}
+                  label="صور فاتورة التوريد / أوراق الشحنة والمستندات"
+                />
+              </div>
+
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
@@ -1030,6 +1089,14 @@ export const SupplierStatement: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Lightbox Image Viewer */}
+      <ImageViewerModal
+        images={viewerImages}
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        title={viewerTitle}
+      />
     </div>
   );
 };

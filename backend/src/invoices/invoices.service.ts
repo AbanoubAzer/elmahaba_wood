@@ -5,18 +5,37 @@ import { PrismaService } from '../prisma/prisma.service';
 export class InvoicesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(user: any, page = 1, limit = 100) {
-    const skip = (page - 1) * limit;
+  async findAll(user: any, page?: number, limit?: number) {
     const where = user?.role?.toUpperCase() !== 'ADMIN' 
       ? { createdBy: user?.name }
       : {};
+
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      const [data, total] = await Promise.all([
+        this.prisma.invoice.findMany({
+          where,
+          include: { items: true },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        this.prisma.invoice.count({ where }),
+      ]);
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
 
     return this.prisma.invoice.findMany({
       where,
       include: { items: true },
       orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit,
     });
   }
 
@@ -59,6 +78,7 @@ export class InvoicesService {
     paymentMethod?: string;
     treasuryId: string;
     notes?: string;
+    images?: string[];
     createdBy: string;
   }) {
     const formattedType = data.type.toUpperCase() as 'SALE' | 'PURCHASE';
@@ -116,6 +136,7 @@ export class InvoicesService {
           paymentMethod: (data.paymentMethod?.toUpperCase() as any) || 'CASH',
           treasuryId: data.treasuryId,
           notes: data.notes,
+          images: data.images || [],
           status,
           createdBy: data.createdBy,
           items: {
@@ -176,6 +197,7 @@ export class InvoicesService {
               balance: newBal,
               invoiceId: invoice.id,
               notes: data.notes,
+              images: data.images || [],
             },
           });
         }
@@ -195,6 +217,7 @@ export class InvoicesService {
               balance: newBal,
               invoiceId: invoice.id,
               notes: data.notes,
+              images: data.images || [],
             },
           });
         }

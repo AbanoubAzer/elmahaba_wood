@@ -22,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { SettingsModule } from './settings/settings.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { CustodiesModule } from './custodies/custodies.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CustodiesModule } from './custodies/custodies.module';
     SettingsModule,
     ExpensesModule,
     CustodiesModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [

@@ -96,6 +96,12 @@ export const backendApi = {
     request<any>(`/invoices/${invoiceId}/cancel`, { method: 'POST', body: JSON.stringify({ createdBy }) }),
   getNextInvoiceNo: (type: 'sale' | 'purchase') => request<{ invoiceNo: string }>(`/invoices/next-number?type=${type}`),
 
+  // Upload to Cloudinary
+  uploadImage: (image: string, folder = 'elmahaba/invoices') =>
+    request<{ url: string; publicId: string }>('/upload', { method: 'POST', body: JSON.stringify({ image, folder }) }),
+  uploadImages: (images: string[], folder = 'elmahaba/invoices') =>
+    request<Array<{ url: string; publicId: string }>>('/upload/multiple', { method: 'POST', body: JSON.stringify({ images, folder }) }),
+
   // Ledger Entries (all parties)
   getAllLedgerEntries: () => request<any[]>('/ledger'),
 

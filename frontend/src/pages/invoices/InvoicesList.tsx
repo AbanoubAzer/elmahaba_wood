@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Plus, Search, Eye, Printer, Wallet, Calculator } from 'lucide-react';
+import { FileText, Plus, Search, Eye, Printer, Wallet, Calculator, Camera } from 'lucide-react';
 import { useInvoiceStore } from '../../store/invoiceStore';
 import { Link } from 'react-router-dom';
 import type { Invoice } from '../../types';
@@ -7,6 +7,7 @@ import { formatArabicNumber, formatArabicDate, toArabicDigits } from '../../util
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { Pagination } from '../../components/ui/Pagination';
+import { ImageViewerModal } from '../../components/ui/ImageViewerModal';
 
 export const InvoicesList: React.FC = () => {
   const { currentUser } = useAuthStore();
@@ -15,6 +16,10 @@ export const InvoicesList: React.FC = () => {
   const [filterType, setFilterType] = useState<'all' | 'sale' | 'purchase'>('all');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerTitle, setViewerTitle] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
@@ -170,9 +175,25 @@ export const InvoicesList: React.FC = () => {
                 {paginatedInvoices.map((inv) => (
                   <tr key={inv.id} className={`hover:bg-slate-50/80 transition-all font-medium ${inv.status === 'cancelled' ? 'opacity-60 bg-red-50/30' : ''}`}>
                     <td className="py-3.5 px-4 font-mono font-bold text-[#f28913]">
-                      <div className="flex items-center gap-2">
-                        {toArabicDigits(inv.invoiceNo)}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span>{toArabicDigits(inv.invoiceNo)}</span>
                         {inv.status === 'cancelled' && <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded text-[9px]">ملغاة</span>}
+                        {inv.images && inv.images.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewerImages(inv.images!);
+                              setViewerTitle(`مرفقات فاتورة رقم ${toArabicDigits(inv.invoiceNo)}`);
+                              setViewerOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded-md cursor-pointer transition-colors"
+                            title="عرض الصور والمرفقات"
+                          >
+                            <Camera className="w-3 h-3 text-amber-700" />
+                            <span>{toArabicDigits(inv.images.length)}</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="py-3.5 px-4">{formatArabicDate(inv.date)}</td>
@@ -365,6 +386,42 @@ export const InvoicesList: React.FC = () => {
               </div>
             )}
 
+            {/* Attached Images */}
+            {selectedInvoice.images && selectedInvoice.images.length > 0 && (
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                    <Camera className="w-4 h-4 text-[#f28913]" />
+                    <span>الصور والمرفقات ({toArabicDigits(selectedInvoice.images.length)})</span>
+                  </span>
+                  <span className="text-[11px] text-slate-400">انقر للتكبير والمعاينة</span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {selectedInvoice.images.map((imgUrl, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setViewerImages(selectedInvoice.images!);
+                        setViewerTitle(`مرفقات فاتورة رقم ${toArabicDigits(selectedInvoice.invoiceNo)}`);
+                        setViewerOpen(true);
+                      }}
+                      className="group relative aspect-square bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-[#f28913] transition-all shadow-2xs"
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`مرفق ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Eye className="w-4 h-4 text-white" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Footer */}
             <div className="pt-4 border-t border-slate-200 flex justify-between items-center text-xs">
               <div>
@@ -378,6 +435,14 @@ export const InvoicesList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Lightbox Image Viewer */}
+      <ImageViewerModal
+        images={viewerImages}
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        title={viewerTitle}
+      />
     </div>
   );
 };

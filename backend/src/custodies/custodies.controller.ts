@@ -7,6 +7,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -19,8 +20,14 @@ export class CustodiesController {
   constructor(private readonly custodiesService: CustodiesService) {}
 
   @Get()
-  async getAll() {
-    return this.custodiesService.getAll();
+  async getAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.custodiesService.getAll(
+      page ? parseInt(page, 10) : undefined,
+      limit ? parseInt(limit, 10) : undefined,
+    );
   }
 
   @Post()

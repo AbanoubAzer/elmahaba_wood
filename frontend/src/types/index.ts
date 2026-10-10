@@ -104,6 +104,7 @@ export interface Invoice {
   paymentMethod: PaymentMethod;
   treasuryId: string;
   notes?: string; // verbal agreements, delivery terms
+  images?: string[]; // Cloudinary invoice receipt/bill images
   status: 'paid' | 'partial' | 'unpaid' | 'cancelled';
   createdBy: string;
 }
@@ -124,6 +125,7 @@ export interface LedgerEntry {
   invoiceId?: string;
   invoice?: Invoice; // To hold the populated invoice object from backend
   notes?: string;
+  images?: string[];
 }
 
 export interface CollectionRouteItem {

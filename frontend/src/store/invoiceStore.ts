@@ -43,6 +43,7 @@ function mapInvoice(inv: any): Invoice {
     paymentMethod: (inv.paymentMethod as string).toLowerCase() as Invoice['paymentMethod'],
     treasuryId: inv.treasuryId,
     notes: inv.notes ?? '',
+    images: inv.images ?? [],
     status: (inv.status as string).toLowerCase() as 'paid' | 'partial' | 'unpaid',
     createdBy: inv.createdBy,
   };
@@ -113,6 +114,7 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       paymentMethod: data.paymentMethod || 'cash',
       treasuryId: data.treasuryId,
       notes: data.notes,
+      images: data.images ?? createdInvoice.images ?? [],
       status,
       createdBy: resolvedCreatedBy,
     };

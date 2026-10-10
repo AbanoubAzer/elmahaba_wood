@@ -94,6 +94,10 @@ export class CreateInvoiceDto {
   @IsString()
   notes?: string;
 
+  @IsOptional()
+  @IsArray()
+  images?: string[];
+
   @IsString()
   @IsNotEmpty({ message: 'اسم المستخدم مطلوب' })
   createdBy: string;

@@ -23,8 +23,8 @@ export class InvoicesController {
   ) {
     return this.invoicesService.findAll(
       req.user,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 100,
+      page ? parseInt(page, 10) : undefined,
+      limit ? parseInt(limit, 10) : undefined,
     );
   }
 

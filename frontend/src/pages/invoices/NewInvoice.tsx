@@ -10,6 +10,7 @@ import Select from 'react-select';
 import { toast } from 'react-hot-toast';
 import type { InvoiceItem, PaymentMethod } from '../../types';
 import { formatArabicNumber, toArabicDigits, getEgyptToday } from '../../utils/numberUtils';
+import { ImageUploadDropzone } from '../../components/ui/ImageUploadDropzone';
 
 interface PaymentSplit {
   method: PaymentMethod;
@@ -34,6 +35,7 @@ export const NewInvoice: React.FC = () => {
     preselectedPartyId || (defaultType === 'sale' ? customers[0]?.id || '' : suppliers[0]?.id || '')
   );
   const [notes, setNotes] = useState('');
+  const [images, setImages] = useState<string[]>([]);
 
   // Multi-Payment Splits State
   const [paymentSplits, setPaymentSplits] = useState<PaymentSplit[]>([
@@ -278,6 +280,7 @@ export const NewInvoice: React.FC = () => {
           paymentMethod: paymentSplits[0]?.method || 'cash',
           treasuryId: paymentSplits[0]?.treasuryId || treasuries[0]?.id || 't1',
           notes: combinedNotes,
+          images,
           createdBy: currentUser?.name || 'محاسب عام',
         },
         currentUser?.name || 'محاسب عام',
@@ -700,6 +703,16 @@ export const NewInvoice: React.FC = () => {
               الإجمالي الكلي: <strong className="text-[#f28913]">{formatArabicNumber(totalAmount, 0)} ج.م</strong>
             </span>
           </div>
+        </div>
+
+        {/* Cloudinary Invoice Images */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+          <ImageUploadDropzone
+            images={images}
+            onChange={setImages}
+            folder={`elmahaba/${invoiceType === 'sale' ? 'sales' : 'purchases'}`}
+            label="صور ومرفقات الفاتورة (أوراق القبض / إيصالات الاستلام / بوالص الشحن من الكاميرا أو الجهاز)"
+          />
         </div>
 
         {/* Notes */}

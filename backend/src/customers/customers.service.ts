@@ -5,7 +5,26 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CustomersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(page?: number, limit?: number) {
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      const [data, total] = await Promise.all([
+        this.prisma.customer.findMany({
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        this.prisma.customer.count(),
+      ]);
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
     return this.prisma.customer.findMany({
       orderBy: { createdAt: 'desc' },
     });

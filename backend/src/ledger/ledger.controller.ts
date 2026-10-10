@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LedgerService } from './ledger.service';
 
@@ -15,9 +15,16 @@ export class LedgerController {
 
   /** GET /api/ledger — all entries */
   @Get()
-  findAll(@Request() req: any) {
+  findAll(
+    @Request() req: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     this.checkAdmin(req);
-    return this.ledgerService.findAll();
+    return this.ledgerService.findAll(
+      page ? parseInt(page, 10) : undefined,
+      limit ? parseInt(limit, 10) : undefined,
+    );
   }
 
   /** GET /api/ledger/customer/:id */

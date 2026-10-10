@@ -5,7 +5,26 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CustodiesService {
   constructor(private prisma: PrismaService) {}
 
-  async getAll() {
+  async getAll(page?: number, limit?: number) {
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      const [data, total] = await Promise.all([
+        this.prisma.custody.findMany({
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        this.prisma.custody.count(),
+      ]);
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
     return this.prisma.custody.findMany({
       orderBy: { createdAt: 'desc' },
     });

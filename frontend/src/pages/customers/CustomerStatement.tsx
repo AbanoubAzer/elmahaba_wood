@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FileText, Printer, PlusCircle, ChevronRight, Calendar, ShoppingCart, CheckCircle2, Trash2, Plus, Wallet, Loader2 } from 'lucide-react';
+import { FileText, Printer, PlusCircle, ChevronRight, Calendar, ShoppingCart, CheckCircle2, Trash2, Plus, Wallet, Loader2, Camera } from 'lucide-react';
 import { useCustomerSupplierStore } from '../../store/customerSupplierStore';
 import { useTreasuryStore } from '../../store/treasuryStore';
 import { useInvoiceStore } from '../../store/invoiceStore';
@@ -9,6 +9,8 @@ import type { PaymentMethod } from '../../types';
 import { toArabicDigits, formatArabicNumber, formatArabicDate, getEgyptToday } from '../../utils/numberUtils';
 import { getPaymentMethodBadge } from '../../utils/paymentUtils';
 import { SmartDateFilters } from '../../components/ui/SmartDateFilters';
+import { ImageViewerModal } from '../../components/ui/ImageViewerModal';
+import { ImageUploadDropzone } from '../../components/ui/ImageUploadDropzone';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 
@@ -45,6 +47,17 @@ export const CustomerStatement: React.FC = () => {
   const [selectedTreasuryId, setSelectedTreasuryId] = useState(treasuries[0]?.id || '');
   const [notes, setNotes] = useState('');
 
+  // Lightbox / Image Viewer State
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerTitle, setViewerTitle] = useState('');
+
+  const openImageViewer = (imgs: string[], title: string) => {
+    setViewerImages(imgs);
+    setViewerTitle(title);
+    setViewerOpen(true);
+  };
+
   // Manual Ledger Entry State (Discount / Settlement)
   const [showManualEntryModal, setShowManualEntryModal] = useState(false);
   const [manualEntryType, setManualEntryType] = useState<'discount' | 'addition'>('discount');
@@ -70,6 +83,7 @@ export const CustomerStatement: React.FC = () => {
   ]);
 
   const [invoiceNotes, setInvoiceNotes] = useState('');
+  const [invoiceImages, setInvoiceImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!customer) {
@@ -316,6 +330,7 @@ export const CustomerStatement: React.FC = () => {
           paymentMethod: paymentSplits[0]?.method || 'cash',
           treasuryId: paymentSplits[0]?.treasuryId || selectedTreasuryId,
           notes: combinedNotes || 'فاتورة مبيعات جديدة من كشف الحساب',
+          images: invoiceImages,
           createdBy: 'المحاسب العام',
         },
         'المحاسب العام',
@@ -345,6 +360,7 @@ export const CustomerStatement: React.FC = () => {
         },
       ]);
       setInvoiceNotes('');
+      setInvoiceImages([]);
       toast.success('تم تسجيل الفاتورة بنجاح');
     } catch (err: any) {
       toast.error(err.message || 'حدث خطأ أثناء حفظ الفاتورة');
@@ -516,6 +532,7 @@ export const CustomerStatement: React.FC = () => {
                   // Calculate exact balance impact for customer: + invoiceTotal - paidAmount
                   runningBalanceMath += (inv.totalAmount - inv.paidAmount);
                   const invoiceVolume = Number(inv.totalVolumeM3) || (inv.items ? inv.items.reduce((s, it) => s + Number(it.volumeM3 || 0), 0) : 0);
+                  const invoiceImages = (inv.images && inv.images.length > 0) ? inv.images : (row.images && row.images.length > 0 ? row.images : []);
 
                   return (
                     <React.Fragment key={`inv-clean-${row.id}`}>
@@ -526,14 +543,37 @@ export const CustomerStatement: React.FC = () => {
                         </td>
                         <td className="border border-slate-400 px-3 py-2 text-right font-black" colSpan={3}>
                           <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-1.5">
                               <span className="text-indigo-900 font-black">{row.description}</span>
-                              {(inv.notes || row.notes) && (
-                                <div className="text-[11px] text-slate-700 bg-white/90 border border-slate-300 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 w-fit font-normal">
-                                  <span className="font-bold text-amber-900">ملاحظات:</span>
-                                  <span>{inv.notes || row.notes}</span>
-                                </div>
-                              )}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {(inv.notes || row.notes) && (
+                                  <div className="text-[11px] text-slate-700 bg-white/90 border border-slate-300 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 w-fit font-normal">
+                                    <span className="font-bold text-amber-900">ملاحظات:</span>
+                                    <span>{inv.notes || row.notes}</span>
+                                  </div>
+                                )}
+                                {invoiceImages.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => openImageViewer(invoiceImages, `مستندات ${inv.invoiceNo || row.description}`)}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 text-xs font-bold transition shadow-xs print:border-slate-300 w-fit cursor-pointer"
+                                    title="عرض صور المستندات المرفقة"
+                                  >
+                                    <Camera className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>المرفقات ({toArabicDigits(invoiceImages.length)})</span>
+                                    <div className="flex -space-x-1 rtl:space-x-reverse mr-0.5">
+                                      {invoiceImages.slice(0, 3).map((img, i) => (
+                                        <img
+                                          key={i}
+                                          src={img}
+                                          alt=""
+                                          className="w-4 h-4 rounded-full object-cover border border-white shadow-xs"
+                                        />
+                                      ))}
+                                    </div>
+                                  </button>
+                                )}
+                              </div>
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
                               {invoiceVolume > 0 && (
@@ -598,12 +638,25 @@ export const CustomerStatement: React.FC = () => {
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex flex-col gap-1">
                             <span className="font-bold text-slate-800">{row.description}</span>
-                            {row.notes && (
-                              <div className="text-[11px] text-amber-950 bg-amber-50 border border-amber-200/90 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 w-fit font-normal">
-                                <span className="font-bold text-amber-900">ملاحظات:</span>
-                                <span>{row.notes}</span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {row.notes && (
+                                <div className="text-[11px] text-amber-950 bg-amber-50 border border-amber-200/90 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 w-fit font-normal">
+                                  <span className="font-bold text-amber-900">ملاحظات:</span>
+                                  <span>{row.notes}</span>
+                                </div>
+                              )}
+                              {row.images && row.images.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => openImageViewer(row.images!, `مستندات ${row.description}`)}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 text-xs font-bold transition shadow-xs w-fit cursor-pointer"
+                                  title="عرض صور المستندات المرفقة"
+                                >
+                                  <Camera className="w-3.5 h-3.5 text-indigo-600" />
+                                  <span>المرفقات ({toArabicDigits(row.images.length)})</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                           {getPaymentMethodBadge(null, row)}
                         </div>
@@ -868,6 +921,14 @@ export const CustomerStatement: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <ImageUploadDropzone
+                  images={invoiceImages}
+                  onChange={setInvoiceImages}
+                  label="صور فاتورة المبيعات / أوراق التسليم والمستندات"
+                />
+              </div>
+
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
@@ -1066,6 +1127,14 @@ export const CustomerStatement: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Lightbox Image Viewer */}
+      <ImageViewerModal
+        images={viewerImages}
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        title={viewerTitle}
+      />
     </div>
   );
 };

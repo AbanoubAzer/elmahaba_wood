@@ -64,6 +64,7 @@ function mapInvoiceForLedger(inv: any) {
       pricePerM3: Number(i.pricePerM3),
       total: Number(i.total),
     })),
+    images: inv.images ?? [],
   };
 }
 
@@ -84,6 +85,7 @@ function mapLedgerEntry(e: any): LedgerEntry {
     invoiceId: e.invoiceId ?? undefined,
     invoice: e.invoice ? mapInvoiceForLedger(e.invoice) : undefined,
     notes: e.notes ?? '',
+    images: e.images ?? [],
   };
 }
 
