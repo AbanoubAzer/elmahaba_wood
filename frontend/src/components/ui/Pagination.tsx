@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { toArabicDigits } from '../../utils/numberUtils';
 
 interface PaginationProps {
   currentPage: number;
@@ -36,34 +37,35 @@ export const Pagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div className={`flex items-center justify-between gap-4 ${className}`} dir="rtl">
-      <span className="text-sm text-slate-500">
-        عرض <strong>{from}–{to}</strong> من <strong>{totalItems}</strong> سجل
+    <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-xs ${className}`} dir="rtl">
+      <span className="text-xs sm:text-sm text-slate-600 font-medium">
+        عرض <strong className="text-slate-900 font-bold">{toArabicDigits(from)}–{toArabicDigits(to)}</strong> من إجمالي <strong className="text-slate-900 font-bold">{toArabicDigits(totalItems)}</strong> سجل
       </span>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          className="p-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          title="الصفحة السابقة"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
 
         {pages.map((p, i) =>
           p === '...' ? (
-            <span key={`dots-${i}`} className="px-2 text-slate-400">…</span>
+            <span key={`dots-${i}`} className="px-1 text-slate-400 font-bold">…</span>
           ) : (
             <button
               key={p}
               onClick={() => onPageChange(p as number)}
-              className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
+              className={`min-w-8 h-8 px-2 rounded-xl text-xs sm:text-sm font-bold transition ${
                 p === currentPage
-                  ? 'bg-slate-800 text-white'
-                  : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'border border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
             >
-              {p}
+              {toArabicDigits(p)}
             </button>
           )
         )}
@@ -71,7 +73,8 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          className="p-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          title="الصفحة التالية"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>

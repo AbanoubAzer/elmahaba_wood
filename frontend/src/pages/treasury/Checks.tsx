@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Calendar, Landmark } from 'lucide-react';
 import { useCheckStore } from '../../store/checkStore';
 import { formatArabicNumber, formatArabicDate } from '../../utils/numberUtils';
+import { Pagination } from '../../components/ui/Pagination';
 import toast from 'react-hot-toast';
 
 export const Checks: React.FC = () => {
   const { checks, loadChecks, addCheck, updateCheckStatus, deleteCheck, isLoading } = useCheckStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'RECEIVABLE' | 'PAYABLE'>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,6 +28,10 @@ export const Checks: React.FC = () => {
     loadChecks();
   }, [loadChecks]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType]);
+
   const filteredChecks = checks.filter((c) => {
     const matchesType = filterType === 'ALL' || c.type === filterType;
     const matchesSearch =
@@ -33,6 +40,11 @@ export const Checks: React.FC = () => {
       c.bankName.includes(searchTerm);
     return matchesType && matchesSearch;
   });
+
+  const paginatedChecks = filteredChecks.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +151,7 @@ export const Checks: React.FC = () => {
                   <td colSpan={8} className="px-4 py-8 text-center text-slate-500 font-bold">لا توجد شيكات</td>
                 </tr>
               ) : (
-                filteredChecks.map((check) => {
+                paginatedChecks.map((check) => {
                   const isDueSoon = check.status === 'PENDING' && check.dueDate.split('T')[0] <= todayStr;
                   return (
                     <tr key={check.id} className={`hover:bg-slate-50 transition-all ${isDueSoon ? 'bg-rose-50/50' : ''}`}>
@@ -195,6 +207,16 @@ export const Checks: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-slate-100">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredChecks.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

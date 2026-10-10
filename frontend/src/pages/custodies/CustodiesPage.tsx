@@ -18,6 +18,7 @@ import {
 import { useCustodyStore } from '../../store/custodyStore';
 import type { Custody } from '../../types';
 import { formatArabicNumber, formatArabicDate, toArabicDigits, getEgyptToday } from '../../utils/numberUtils';
+import { Pagination } from '../../components/ui/Pagination';
 import toast from 'react-hot-toast';
 
 export const CustodiesPage: React.FC = () => {
@@ -26,6 +27,8 @@ export const CustodiesPage: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'DELIVERED'>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +48,10 @@ export const CustodiesPage: React.FC = () => {
     loadFromBackend();
   }, [loadFromBackend]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
   const filteredCustodies = custodies.filter((c) => {
     const matchesStatus =
       statusFilter === 'ALL' ||
@@ -61,6 +68,11 @@ export const CustodiesPage: React.FC = () => {
 
     return matchesStatus && matchesSearch;
   });
+
+  const paginatedCustodies = filteredCustodies.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Financial Stats
   const totalAmount = custodies.reduce((sum, c) => sum + (c.amount || 0), 0);
@@ -318,7 +330,8 @@ export const CustodiesPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredCustodies.map((c, idx) => {
+                paginatedCustodies.map((c, idx) => {
+                  const globalIdx = (currentPage - 1) * itemsPerPage + idx;
                   const isOverdue = !c.delivered && c.expectedReturnDate && c.expectedReturnDate < todayStr;
                   const isDueToday = !c.delivered && c.expectedReturnDate && c.expectedReturnDate === todayStr;
 
@@ -330,7 +343,7 @@ export const CustodiesPage: React.FC = () => {
                       }`}
                     >
                       <td className="py-3.5 px-4 text-center text-slate-400 font-mono text-[11px]">
-                        {toArabicDigits(idx + 1)}
+                        {toArabicDigits(globalIdx + 1)}
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -473,6 +486,16 @@ export const CustodiesPage: React.FC = () => {
               </tfoot>
             )}
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-slate-100 print:hidden">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredCustodies.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

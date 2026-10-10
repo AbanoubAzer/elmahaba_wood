@@ -4,6 +4,7 @@ import { useExpenseStore, EXPENSE_CATEGORIES } from '../../store/expenseStore';
 import { useTreasuryStore } from '../../store/treasuryStore';
 import { useAuthStore } from '../../store/authStore';
 import { formatArabicDate, toArabicDigits } from '../../utils/numberUtils';
+import { Pagination } from '../../components/ui/Pagination';
 import toast from 'react-hot-toast';
 
 export const ExpensesPage: React.FC = () => {
@@ -12,6 +13,8 @@ export const ExpensesPage: React.FC = () => {
   const { currentUser } = useAuthStore();
 
   const [showModal, setShowModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const [formData, setFormData] = useState({
     title: '',
     category: EXPENSE_CATEGORIES[0],
@@ -26,6 +29,10 @@ export const ExpensesPage: React.FC = () => {
   const [filterTreasury, setFilterTreasury] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterCategory, filterTreasury, startDate, endDate]);
 
   useEffect(() => {
     loadFromBackend();
@@ -69,6 +76,10 @@ export const ExpensesPage: React.FC = () => {
   }, [expenses, filterCategory, filterTreasury, startDate, endDate]);
 
   const totalFiltered = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+  const paginatedExpenses = useMemo(() => {
+    return filteredExpenses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  }, [filteredExpenses, currentPage, itemsPerPage]);
 
   const handlePrint = () => {
     window.print();
@@ -193,7 +204,7 @@ export const ExpensesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
-              {filteredExpenses.map((exp) => (
+              {paginatedExpenses.map((exp) => (
                 <tr key={exp.id} className="hover:bg-slate-50 font-medium print:border print:border-slate-400">
                   <td className="py-3 px-4 print:border print:border-slate-400">{formatArabicDate(exp.date)}</td>
                   <td className="py-3 px-4 font-bold text-slate-900 print:border print:border-slate-400">{exp.title}</td>
@@ -238,6 +249,16 @@ export const ExpensesPage: React.FC = () => {
               </tr>
             </tfoot>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-slate-100 print:hidden">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredExpenses.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import type { Invoice } from '../../types';
 import { formatArabicNumber, formatArabicDate, toArabicDigits } from '../../utils/numberUtils';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
+import { Pagination } from '../../components/ui/Pagination';
 
 export const InvoicesList: React.FC = () => {
   const { currentUser } = useAuthStore();
@@ -28,7 +29,6 @@ export const InvoicesList: React.FC = () => {
     return matchesType && matchesSearch;
   });
 
-  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
   const paginatedInvoices = filteredInvoices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Reset page when search or filter changes
@@ -231,29 +231,12 @@ export const InvoicesList: React.FC = () => {
         </div>
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white px-4 py-3 border border-slate-200 rounded-xl">
-            <div className="text-xs text-slate-600">
-              عرض صفحة <span className="font-bold">{currentPage}</span> من <span className="font-bold">{totalPages}</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
-              >
-                السابق
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
-              >
-                التالي
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredInvoices.length}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {/* Detailed Invoice View Modal */}

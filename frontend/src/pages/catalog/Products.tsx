@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import type { WoodProduct } from '../../types';
 import { formatArabicNumber } from '../../utils/numberUtils';
 import { toast } from 'react-hot-toast';
+import { Pagination } from '../../components/ui/Pagination';
 
 export const Products: React.FC = () => {
   const { products, addProduct, updateProduct, deleteProduct } = useWoodStore();
@@ -12,6 +13,8 @@ export const Products: React.FC = () => {
   const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'storekeeper' || currentUser?.role === 'accountant';
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -22,12 +25,21 @@ export const Products: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const filteredProducts = products.filter(
     (p) =>
       p.name.includes(searchTerm) ||
       p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.specs.includes(searchTerm) ||
       (p.notes && p.notes.includes(searchTerm))
+  );
+
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -163,7 +175,7 @@ export const Products: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
-              {filteredProducts.map((p) => {
+              {paginatedProducts.map((p) => {
                 const isLowStock = p.volumeM3 <= p.minStockM3;
                 const totalVal = p.volumeM3 * p.pricePerM3;
 
@@ -248,6 +260,16 @@ export const Products: React.FC = () => {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-slate-100">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredProducts.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

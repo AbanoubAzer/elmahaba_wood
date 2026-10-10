@@ -4,6 +4,7 @@ import { useCustomerSupplierStore } from '../../store/customerSupplierStore';
 import { useAuthStore } from '../../store/authStore';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { Pagination } from '../../components/ui/Pagination';
 
 export const Customers: React.FC = () => {
   const { currentUser } = useAuthStore();
@@ -31,7 +32,6 @@ export const Customers: React.FC = () => {
       (c.address && c.address.includes(searchTerm))
   );
 
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Reset page when search changes
@@ -204,29 +204,12 @@ export const Customers: React.FC = () => {
       </div>
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white px-4 py-3 border border-slate-200 rounded-xl">
-          <div className="text-xs text-slate-600">
-            عرض صفحة <span className="font-bold">{currentPage}</span> من <span className="font-bold">{totalPages}</span>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
-            >
-              السابق
-            </button>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50"
-            >
-              التالي
-            </button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={filteredCustomers.length}
+        pageSize={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Add/Edit Customer Modal */}
       {showModal && (

@@ -5,11 +5,14 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import type { Supplier } from '../../types';
 import { toast } from 'react-hot-toast';
+import { Pagination } from '../../components/ui/Pagination';
 
 export const Suppliers: React.FC = () => {
   const { currentUser } = useAuthStore();
   const { suppliers, addSupplier, updateSupplier } = useCustomerSupplierStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -22,11 +25,20 @@ export const Suppliers: React.FC = () => {
     balance: 0,
   });
 
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const filteredSuppliers = suppliers.filter(
     (s) =>
       s.name.includes(searchTerm) ||
       (s.phone && s.phone.includes(searchTerm)) ||
       (s.address && s.address.includes(searchTerm))
+  );
+
+  const paginatedSuppliers = filteredSuppliers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const handleSave = async (e: React.FormEvent) => {
@@ -121,7 +133,7 @@ export const Suppliers: React.FC = () => {
 
       {/* Suppliers Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredSuppliers.map((s) => (
+        {paginatedSuppliers.map((s) => (
           <div
             key={s.id}
             className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
@@ -198,6 +210,14 @@ export const Suppliers: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={filteredSuppliers.length}
+        pageSize={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Add/Edit Supplier Modal */}
       {showModal && (

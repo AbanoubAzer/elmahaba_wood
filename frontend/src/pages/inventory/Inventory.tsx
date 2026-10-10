@@ -11,11 +11,18 @@ import {
 } from 'lucide-react';
 import { useWoodStore } from '../../store/woodStore';
 import { formatArabicNumber, formatArabicDate } from '../../utils/numberUtils';
+import { Pagination } from '../../components/ui/Pagination';
 
 export const Inventory: React.FC = () => {
   const { products, movements } = useWoodStore();
   const [filterType, setFilterType] = useState<'all' | 'in' | 'out'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, searchTerm]);
 
   const filteredMovements = movements.filter((m) => {
     const matchesType = filterType === 'all' || m.type === filterType;
@@ -25,6 +32,11 @@ export const Inventory: React.FC = () => {
       m.invoiceNo.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesType && matchesSearch;
   });
+
+  const paginatedMovements = filteredMovements.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const totalIn = movements.filter((m) => m.type === 'in').reduce((acc, m) => acc + m.volumeM3, 0);
   const totalOut = movements.filter((m) => m.type === 'out').reduce((acc, m) => acc + m.volumeM3, 0);
@@ -201,7 +213,7 @@ export const Inventory: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredMovements.map((m) => (
+                paginatedMovements.map((m) => (
                   <tr key={m.id} className="hover:bg-slate-50/80 transition-all">
                     <td className="py-3.5 px-4 font-medium">{formatArabicDate(m.date)}</td>
                     <td className="py-3.5 px-4 font-mono font-bold text-[#f28913]">{m.invoiceNo}</td>
@@ -226,6 +238,16 @@ export const Inventory: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-slate-100">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredMovements.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

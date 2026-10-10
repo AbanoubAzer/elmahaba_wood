@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Search, Loader2 } from 'lucide-react';
 import { useAuditStore } from '../../store/auditStore';
+import { Pagination } from '../../components/ui/Pagination';
 
 export const AuditLogs: React.FC = () => {
   const { logs, isLoading, loadLogs } = useAuditStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     loadLogs();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const filteredLogs = logs.filter(
     (log) =>
@@ -16,6 +23,11 @@ export const AuditLogs: React.FC = () => {
       log.action.includes(searchTerm) ||
       log.details.includes(searchTerm) ||
       log.timestamp.includes(searchTerm)
+  );
+
+  const paginatedLogs = filteredLogs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return (
@@ -67,7 +79,7 @@ export const AuditLogs: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
-              {filteredLogs.map((log) => (
+              {paginatedLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50/80 transition-all font-medium">
                   <td className="py-3.5 px-4 font-mono text-slate-500">{log.timestamp}</td>
                   <td className="py-3.5 px-4 font-bold text-slate-900">{log.userName}</td>
@@ -90,6 +102,16 @@ export const AuditLogs: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-slate-100">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredLogs.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
       )}
