@@ -177,3 +177,18 @@ export interface Notification {
   read: boolean;
   type: 'warning' | 'info' | 'success';
 }
+
+export interface Custody {
+  id: string;
+  personName: string;
+  phone?: string;
+  location?: string;
+  amount: number;
+  expectedReturnDate?: string;
+  delivered: boolean;
+  deliveredDate?: string;
+  notes?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}

@@ -19,6 +19,7 @@ import { UserManagement } from './pages/admin/UserManagement';
 import { DatabaseBackup } from './pages/admin/DatabaseBackup';
 import { NotificationCenter } from './pages/notifications/NotificationCenter';
 import { ExpensesPage } from './pages/expenses/ExpensesPage';
+import { CustodiesPage } from './pages/custodies/CustodiesPage';
 import { ProfitLoss } from './pages/reports/ProfitLoss';
 import { CashFlow } from './pages/reports/CashFlow';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -33,6 +34,7 @@ import { useInstallmentStore } from './store/installmentStore';
 import { useExpenseStore } from './store/expenseStore';
 import { useReminderStore } from './store/reminderStore';
 import { useCheckStore } from './store/checkStore';
+import { useCustodyStore } from './store/custodyStore';
 import { Toaster } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -63,6 +65,7 @@ export function App() {
             useInvoiceStore.getState().loadFromBackend(),
             useReminderStore.getState().loadReminders(),
             useExpenseStore.getState().loadFromBackend(),
+            useCustodyStore.getState().loadFromBackend(),
           ];
 
           // Admin-only stores — would return 403 for accountant/storekeeper
@@ -140,6 +143,7 @@ export function App() {
           <Route path="collection-route" element={<CollectionRoute />} />
           <Route path="installments" element={<InstallmentPlans />} />
           <Route path="expenses" element={<ExpensesPage />} />
+          <Route path="custodies" element={<CustodiesPage />} />
           <Route path="reports" element={<ProfitLoss />} />
           <Route path="reports/pnl" element={<ProfitLoss />} />
           <Route path="reports/cash-flow" element={<CashFlow />} />

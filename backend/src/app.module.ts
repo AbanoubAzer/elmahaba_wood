@@ -21,6 +21,7 @@ import { InstallmentsModule } from './installments/installments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SettingsModule } from './settings/settings.module';
 import { ExpensesModule } from './expenses/expenses.module';
+import { CustodiesModule } from './custodies/custodies.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ExpensesModule } from './expenses/expenses.module';
     NotificationsModule,
     SettingsModule,
     ExpensesModule,
+    CustodiesModule,
   ],
   controllers: [AppController],
   providers: [

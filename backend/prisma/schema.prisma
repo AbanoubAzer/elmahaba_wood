@@ -296,3 +296,18 @@ model SystemSetting {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Custody {
+  id                 String    @id @default(uuid())
+  personName         String
+  phone              String?
+  location           String?
+  amount             Decimal   @db.Decimal(14, 2)
+  expectedReturnDate DateTime?
+  delivered          Boolean   @default(false)
+  deliveredDate      DateTime?
+  notes              String?
+  createdBy          String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}

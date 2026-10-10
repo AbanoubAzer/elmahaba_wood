@@ -20,6 +20,7 @@ import {
   Database,
   Landmark,
   FileText,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useCheckStore } from '../../store/checkStore';
@@ -66,6 +67,7 @@ const menuGroups: MenuGroup[] = [
       { icon: Landmark, label: 'الشيكات (أوراق قبض ودفع)', path: '/checks', roles: ['admin'] },
       { icon: Wallet, label: 'الخزائن وطرق الدفع', path: '/treasury', roles: ['admin'] },
       { icon: FileText, label: 'إدارة المصروفات', path: '/expenses', roles: ['admin', 'accountant'] },
+      { icon: ShieldCheck, label: 'إدارة الأمانات والعُهد', path: '/custodies', roles: ['admin', 'accountant'] },
       { icon: BookOpen, label: 'كشوف الحسابات الموحدة', path: '/ledger', roles: ['admin'] },
       { icon: CalendarDays, label: 'جدول الأقساط والالتزامات', path: '/installments', roles: ['admin'] },
     ],

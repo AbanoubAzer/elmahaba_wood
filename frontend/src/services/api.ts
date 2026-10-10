@@ -152,5 +152,12 @@ export const backendApi = {
   getExpenses: () => request<any[]>('/expenses'),
   createExpense: (data: any) => request<any>('/expenses', { method: 'POST', body: JSON.stringify(data) }),
   deleteExpense: (id: string) => request<void>(`/expenses/${id}`, { method: 'DELETE' }),
+
+  // Custodies (الأمانات)
+  getCustodies: () => request<any[]>('/custodies'),
+  createCustody: (data: any) => request<any>('/custodies', { method: 'POST', body: JSON.stringify(data) }),
+  updateCustody: (id: string, data: any) => request<any>(`/custodies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  toggleCustodyDelivered: (id: string, delivered: boolean) => request<any>(`/custodies/${id}/toggle-delivered`, { method: 'PATCH', body: JSON.stringify({ delivered }) }),
+  deleteCustody: (id: string) => request<void>(`/custodies/${id}`, { method: 'DELETE' }),
 };
 

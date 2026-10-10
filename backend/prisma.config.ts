@@ -9,8 +9,8 @@ export default defineConfig({
   },
   datasource: {
     url:
-      process.env.DIRECT_URL ||
       process.env.DATABASE_URL ||
+      process.env.DIRECT_URL ||
       'postgresql://postgres:test@localhost:5432/elmahaba_wood_db?schema=public',
   },
 });
