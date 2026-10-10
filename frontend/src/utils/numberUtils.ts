@@ -59,11 +59,31 @@ export function formatArabicDateTime(dateStr?: string | Date): string {
   );
 }
 
-export function formatArabicNumber(num: number, decimals: number = 2): string {
-  if (num === null || num === undefined || isNaN(num)) return '٠';
-  const formatted = num.toLocaleString('en-US', {
-    minimumFractionDigits: decimals,
+/**
+ * Formats a number with Arabic numerals and thousands separators.
+ * By default, trims redundant trailing zeros (e.g. 1 instead of 1.0000, 1.5 instead of 1.5000).
+ */
+export function formatArabicNumber(
+  num: number | string,
+  decimals: number = 2,
+  trimTrailingZeros: boolean = true,
+): string {
+  if (num === null || num === undefined) return '٠';
+  const n = typeof num === 'number' ? num : Number(num);
+  if (isNaN(n)) return '٠';
+
+  const formatted = n.toLocaleString('en-US', {
+    minimumFractionDigits: trimTrailingZeros ? 0 : decimals,
     maximumFractionDigits: decimals,
   });
   return toArabicDigits(formatted);
 }
+
+/**
+ * Formats cubic meters volume (m³) up to 4 decimal places without redundant trailing zeros.
+ * e.g. 1 -> '١', 1.5 -> '١.٥', 7.5222 -> '٧.٥٢٢٢'
+ */
+export function formatVolume(num: number | string): string {
+  return formatArabicNumber(num, 4, true);
+}
+
